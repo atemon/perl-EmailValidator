@@ -50,8 +50,22 @@ sub valid_mx {
 sub is_valid{
     my ($self, $email) = @_;
     return undef unless $email;
+    
+    # RFC 3696
+    # In addition to restrictions on syntax, there is a length limit on email addresses. 
+    # That limit is a maximum of 64 characters (octets) in the "local part" (before the "@") 
+    # and a maximum of 255 characters (octets) in the domain part (after the "@") for a total 
+    # length of 320 characters. However, there is a restriction in RFC 2821 on the length of 
+    # an address in MAIL and RCPT commands of 254 characters. Since addresses that do not fit 
+    # in those fields are not normally useful, the upper limit on address lengths should 
+    # normally be considered to be 254.
+
+    return undef if length($email) > 254;
 
     my ($user, $domain, $parts) = split '@', $email;
+    return undef if length($user) > 64;
+    return undef if length($domain) > 255;
+    
     return undef if($parts);
     return undef if( $user !~ /[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:\.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+)*/i);
     return $self->valid_mx($domain);   #  A valid mail exchange server is configured!
